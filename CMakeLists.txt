@@ -31,6 +31,8 @@ add_library(tinyvmm_core STATIC
   src/common/file.cc
   src/devices/uart8250.cc
   src/memory/guest_memory.cc
+  src/trace/boot_trace.cc
+  src/trace/marker_scanner.cc
   src/x86/e820.cc
   src/x86/gdt.cc
   src/x86/page_tables.cc
@@ -60,12 +62,14 @@ if(TINYVMM_BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   add_executable(tinyvmm_tests
+    tests/boot_trace_test.cc
     tests/cmdline_test.cc
     tests/e820_test.cc
     tests/gdt_test.cc
     tests/guest_memory_test.cc
     tests/kernel_image_test.cc
     tests/linux_loader_test.cc
+    tests/marker_scanner_test.cc
     tests/page_tables_test.cc
     tests/uart8250_test.cc
     tests/zero_page_test.cc
