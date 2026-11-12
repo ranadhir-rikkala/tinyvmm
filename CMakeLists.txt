@@ -30,6 +30,7 @@ add_library(tinyvmm_core STATIC
   src/x86/e820.cc
   src/x86/gdt.cc
   src/x86/page_tables.cc
+  src/x86/zero_page.cc
 )
 target_include_directories(tinyvmm_core PUBLIC src)
 target_link_libraries(tinyvmm_core PRIVATE tinyvmm_warnings)
@@ -59,6 +60,7 @@ if(TINYVMM_BUILD_TESTS)
     tests/gdt_test.cc
     tests/guest_memory_test.cc
     tests/page_tables_test.cc
+    tests/zero_page_test.cc
   )
   target_link_libraries(tinyvmm_tests PRIVATE tinyvmm_core tinyvmm_warnings GTest::gtest_main)
   include(GoogleTest)
