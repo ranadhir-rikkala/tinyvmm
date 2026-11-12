@@ -44,6 +44,7 @@ target_link_libraries(tinyvmm_core PRIVATE tinyvmm_warnings)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_library(tinyvmm_kvm STATIC
     src/kvm/kvm.cc
+    src/vmm/linux_boot.cc
     src/vmm/smoke.cc
   )
   if(TINYVMM_X86_64)
@@ -51,6 +52,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
   target_link_libraries(tinyvmm_kvm PUBLIC tinyvmm_core PRIVATE tinyvmm_warnings)
 
+  add_executable(tinyvmm src/main.cc)
+  target_link_libraries(tinyvmm PRIVATE tinyvmm_kvm tinyvmm_warnings)
 endif()
 
 if(TINYVMM_BUILD_TESTS)
