@@ -27,6 +27,7 @@ endif()
 add_library(tinyvmm_core STATIC
   src/boot/cmdline.cc
   src/boot/kernel_image.cc
+  src/boot/linux_loader.cc
   src/common/file.cc
   src/memory/guest_memory.cc
   src/x86/e820.cc
@@ -63,6 +64,7 @@ if(TINYVMM_BUILD_TESTS)
     tests/gdt_test.cc
     tests/guest_memory_test.cc
     tests/kernel_image_test.cc
+    tests/linux_loader_test.cc
     tests/page_tables_test.cc
     tests/zero_page_test.cc
   )
