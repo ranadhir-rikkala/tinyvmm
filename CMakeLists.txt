@@ -31,6 +31,13 @@ add_library(tinyvmm_core STATIC
 target_include_directories(tinyvmm_core PUBLIC src)
 target_link_libraries(tinyvmm_core PRIVATE tinyvmm_warnings)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_library(tinyvmm_kvm STATIC
+    src/kvm/kvm.cc
+  )
+  target_link_libraries(tinyvmm_kvm PUBLIC tinyvmm_core PRIVATE tinyvmm_warnings)
+
+endif()
 
 if(TINYVMM_BUILD_TESTS)
   enable_testing()
