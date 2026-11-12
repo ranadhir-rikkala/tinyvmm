@@ -25,6 +25,7 @@ if(TINYVMM_WERROR)
 endif()
 
 add_library(tinyvmm_core STATIC
+  src/boot/cmdline.cc
   src/common/file.cc
   src/memory/guest_memory.cc
   src/x86/e820.cc
@@ -56,6 +57,7 @@ if(TINYVMM_BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   add_executable(tinyvmm_tests
+    tests/cmdline_test.cc
     tests/e820_test.cc
     tests/gdt_test.cc
     tests/guest_memory_test.cc
