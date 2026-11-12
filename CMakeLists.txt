@@ -44,7 +44,11 @@ target_link_libraries(tinyvmm_core PRIVATE tinyvmm_warnings)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_library(tinyvmm_kvm STATIC
     src/kvm/kvm.cc
+    src/vmm/smoke.cc
   )
+  if(TINYVMM_X86_64)
+    target_sources(tinyvmm_kvm PRIVATE src/kvm/x86_cpu.cc)
+  endif()
   target_link_libraries(tinyvmm_kvm PUBLIC tinyvmm_core PRIVATE tinyvmm_warnings)
 
 endif()
@@ -71,6 +75,7 @@ if(TINYVMM_BUILD_TESTS)
     tests/linux_loader_test.cc
     tests/marker_scanner_test.cc
     tests/page_tables_test.cc
+    tests/smoke_guests_test.cc
     tests/uart8250_test.cc
     tests/zero_page_test.cc
   )
