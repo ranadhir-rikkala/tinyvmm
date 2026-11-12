@@ -27,6 +27,9 @@ endif()
 add_library(tinyvmm_core STATIC
   src/common/file.cc
   src/memory/guest_memory.cc
+  src/x86/e820.cc
+  src/x86/gdt.cc
+  src/x86/page_tables.cc
 )
 target_include_directories(tinyvmm_core PUBLIC src)
 target_link_libraries(tinyvmm_core PRIVATE tinyvmm_warnings)
@@ -52,7 +55,10 @@ if(TINYVMM_BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
 
   add_executable(tinyvmm_tests
+    tests/e820_test.cc
+    tests/gdt_test.cc
     tests/guest_memory_test.cc
+    tests/page_tables_test.cc
   )
   target_link_libraries(tinyvmm_tests PRIVATE tinyvmm_core tinyvmm_warnings GTest::gtest_main)
   include(GoogleTest)
