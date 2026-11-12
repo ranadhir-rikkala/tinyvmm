@@ -29,6 +29,7 @@ add_library(tinyvmm_core STATIC
   src/boot/kernel_image.cc
   src/boot/linux_loader.cc
   src/common/file.cc
+  src/devices/uart8250.cc
   src/memory/guest_memory.cc
   src/x86/e820.cc
   src/x86/gdt.cc
@@ -66,6 +67,7 @@ if(TINYVMM_BUILD_TESTS)
     tests/kernel_image_test.cc
     tests/linux_loader_test.cc
     tests/page_tables_test.cc
+    tests/uart8250_test.cc
     tests/zero_page_test.cc
   )
   target_link_libraries(tinyvmm_tests PRIVATE tinyvmm_core tinyvmm_warnings GTest::gtest_main)
