@@ -141,12 +141,12 @@ verbosity directly affects guest boot time; CI boots twice (default and `quiet`)
 - CI on `ubuntu-latest` (x86_64, `/dev/kvm` available) runs the real-mode and long-mode smoke guests. The long-mode
   guest uses the same GDT, page tables and segment setup as the Linux path, so it checks that state against real
   hardware virtualization.
-- CI then boots the Firecracker CI kernel with a one-file initramfs. This job is marked experimental until it has
-  been observed passing.
+- CI then boots the Firecracker CI kernel with a one-file initramfs, verbose and quiet, and uploads both boot
+  traces. It passes: Linux reaches `/init` in 287 ms (quiet) and 591 ms (verbose), see the README.
 
 ## Known gaps and risks
 
-- No MP table or ACPI tables. With the `no-acpi` Firecracker kernel, Linux should fall back to "virtual wire" mode
+- No MP table or ACPI tables. With the `no-acpi` Firecracker kernel, Linux falls back to "virtual wire" mode
   (PIC through LAPIC LINT0). If the Linux boot fails in CI, writing an MP table (as Firecracker does) is the first
   thing to add.
 - No MSR setup (`MTRRdefType`, `MISC_ENABLE`); Linux will report MTRRs as disabled.

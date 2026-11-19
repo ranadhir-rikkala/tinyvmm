@@ -7,9 +7,9 @@ tinyvmm is in the same family as Firecracker and kvmtool, but much smaller: one 
 boot-latency tracer. It is written to make the KVM API and the x86 Linux boot protocol easy to read, and to be a
 base for experiments on VM startup time (prefaulting, snapshots, virtio devices).
 
-> **Status:** milestone 1. Unit tests and the loader are verified locally. The KVM paths have not been run on
-> real hardware by me yet; CI is set up to run them on x86_64 runners with `/dev/kvm`. See
-> [Verified vs untested](#verified-vs-untested).
+> **Status:** milestone 1 done. tinyvmm boots Linux 5.10 to `/init` under KVM in CI on x86_64 GitHub runners:
+> **287 ms** from process start to the init marker with a quiet console, 591 ms with a verbose one. See
+> [Measured boot](#measured-boot) and [Verified vs untested](#verified-vs-untested).
 
 ## How a VMM works
 
@@ -101,6 +101,30 @@ init_marker                       ...          ...
 
 The run also prints VM exit counts by port, which shows how much of the boot is spent on serial output.
 
+### Measured boot
+
+Firecracker CI `vmlinux-5.10.225-no-acpi`, 256 MiB, one vCPU, test initramfs. GitHub-hosted `ubuntu-latest`
+runner (nested KVM on Azure), CI run [43147121131](https://github.com/ranadhir-rikkala/tinyvmm/actions/runs/43147121131).
+Single run each, so treat these as one sample, not a benchmark.
+
+| Phase (since_start_ms) | verbose console | `--append quiet` |
+|---|---:|---:|
+| `kvm_ready` | 0.57 | 0.46 |
+| `memory_mapped` | 2.33 | 1.47 |
+| `kernel_loaded` | 37.63 | 36.03 |
+| `first_vcpu_entry` | 37.85 | 36.26 |
+| `first_serial_byte` | 71.53 | 286.64 |
+| `init_marker` | **590.65** | **286.79** |
+| VM exits (all port I/O) | 28,155 | 85 |
+
+What the numbers show:
+
+- **The console is the biggest knob.** The verbose boot takes 28,155 exits, almost all on the UART data and
+  line-status ports (`0x3f8`, `0x3fd`). Going quiet cuts exits by ~330x and time-to-init by ~300 ms.
+- **The VMM's own setup is ~37 ms**, and almost all of it is `kernel_loaded`: reading the kernel and initramfs and
+  faulting in guest RAM on first touch. KVM setup itself is under 1 ms.
+- With `quiet`, `first_serial_byte` moves to the end because the kernel prints nothing; the first byte is `/init`.
+
 ## Quickstart (Linux host with KVM)
 
 Requirements: x86_64 Linux, read/write access to `/dev/kvm`, CMake >= 3.24, a C++20 compiler (GCC 12+ or Clang 15+),
@@ -144,16 +168,17 @@ docker run --rm -v "$PWD:/src" -w /src tinyvmm-dev \
 | Build on aarch64 Linux (KVM boot path compiled out) | **Verified** | same container |
 | ELF vmlinux loader on a real kernel | **Verified (no KVM)** | `--dry-run` on Firecracker CI `vmlinux-5.10.225-no-acpi`: segments, entry `0x1000000`, e820, zero page, page tables |
 | Smoke guest machine code | **Verified (emulator only)** | bytes executed in the Unicorn CPU emulator in 16-bit and 64-bit modes; output matched |
-| Smoke guests under KVM (`smoke --mode real/long`) | **Untested** | no `/dev/kvm` on the development machine (Apple silicon); runs in CI on `ubuntu-latest` |
-| Linux boot to `/init` under KVM, serial console, latency table | **Untested** | implemented; CI job `linux-boot` is marked experimental (`continue-on-error`) until a green run |
+| Smoke guests under KVM (`smoke --mode real/long`) | **Verified (CI)** | both modes pass on `ubuntu-latest` with `/dev/kvm` |
+| Linux boot to `/init` under KVM, serial console, latency table | **Verified (CI)** | job `linux-boot` boots 5.10.225 to `TINYVMM_INIT_OK`, verbose and quiet, traces uploaded as artifacts |
+| Boot latency numbers | **One CI sample** | see [Measured boot](#measured-boot); nested virtualization on a shared runner, not bare metal |
+| KVM paths on bare metal | **Untested** | no `/dev/kvm` on the development machine (Apple silicon) |
 | bzImage boot | **Untested** | parser and loader tested only with synthetic headers; never booted |
-| Boot latency numbers | **None published** | no numbers are quoted here until they come from a real run |
 
 ## Roadmap
 
 - [x] **M1: boot skeleton.** RAII KVM wrappers, guest memory, real/long-mode smoke guests, ELF vmlinux and bzImage
   loading via the 64-bit boot protocol, 8250 UART on `0x3f8` with IRQ 4, boot-latency tracer, unit tests, CI.
-  (Linux boot under KVM still to be confirmed in CI, see above.)
+  Linux 5.10 boots to `/init` under KVM in CI.
 - [ ] **M2: platform tables.** MP table (then minimal ACPI) so Linux uses the IOAPIC; boot MSRs; CPUID topology.
 - [ ] **M3: virtio-mmio.** virtio console and virtio-blk on the MMIO transport, devices declared on the command line
   (`virtio_mmio.device=`), irqfd/ioeventfd instead of exits to userspace.
